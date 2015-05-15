@@ -1,0 +1,468 @@
+package Updated;
+
+
+
+import java.util.Vector;
+
+class PortalsData {
+
+ public static final int
+           EMPTY = 0,
+           WHITE = 1,
+           WHITE_SPLIT = 2,
+           BLACK = 3,
+           BLACK_SPLIT = 4;
+           /*
+           //WARP = 5,
+           RED_WARP = 6,
+           ORANGE_WARP = 7,
+           YELLOW_WARP = 8,
+           GREEN_WARP = 9,
+           CYAN_WARP = 10,
+           BLUE_WARP = 11;
+           */
+ public static final int[]
+		   WARP = {5, 6, 7, 8, 9, 10};
+
+ public static int[][] board;  // board[r][c] is the contents of row r, column c.  
+ public static int[][] isWarp;
+
+ public PortalsData() {
+       // Constructor.  Create the board and set it up for a new game.
+    board = new int[8][8];
+    isWarp = new int[8][8];
+    setUpGame();
+ }
+    
+ 
+ public void setUpGame() {
+        // Set up the board with checkers in position for the beginning
+        // of a game.  Note that checkers can only be found in squares
+        // that satisfy  row % 2 == col % 2.  At the start of the game,
+        // all such squares in the first three rows contain black squares
+        // and all such squares in the last three rows contain WHITE squares.
+	  
+    for (int row = 0; row < 8; row++) {
+       for (int col = 0; col < 8; col++) {
+      	 
+      	   isWarp[row][col] = 0;
+      	   
+             if (row == 0)
+                board[row][col] = BLACK;
+             else if (row == 7)
+                board[row][col] = WHITE;
+             else
+                board[row][col] = EMPTY;
+         
+       }
+    }
+    //Cyan
+    board[2][1] = WARP[4];
+    board[5][6] = WARP[4];
+    isWarp[2][1] = 9;
+    isWarp[5][6] = 9;
+    //Red
+    board[2][3] = WARP[0];
+    board[5][4] = WARP[0];
+    isWarp[2][3] = 5;
+    isWarp[5][4] = 5;
+    //Orange
+    board[2][4] = WARP[1];
+    board[5][3] = WARP[1];
+    isWarp[2][4] = 6;
+    isWarp[5][3] = 6;
+    //Blue
+    board[2][6] = WARP[5];
+    board[5][1] = WARP[5];
+    isWarp[2][6] = 10;
+    isWarp[5][1] = 10;
+    //Yellow
+    board[3][2] = WARP[2];
+    board[4][5] = WARP[2];
+    isWarp[3][2] = 7;
+    isWarp[4][5] = 7;
+    //Green
+    board[3][5] = WARP[3];
+    board[4][2] = WARP[3];
+    isWarp[3][5] = 8;
+    isWarp[4][2] = 8;
+    
+    
+ }  // end setUpGame()
+ 
+
+ public int pieceAt(int row, int col) {
+        // Return the contents of the square in the specified row and column.
+     return board[row][col];
+ }
+ 
+
+ public void setPieceAt(int row, int col, int piece) {
+        // Set the contents of the square in the specified row and column.
+        // piece must be one of the constants EMPTY, WHITE, BLACK, WHITE_SPLIT,
+        // BLACK_SPLIT.
+     board[row][col] = piece;
+ }
+ 
+ public int
+ warpRow,
+ warpCol,
+ warpJumpRow,
+ warpJumpCol,
+ incc,
+ incr;
+
+ public void makeMove(PortalsMoves move) 
+ {
+       // Make the specified move.  It is assumed that move
+       // is non-null and that the move it represents is legal.
+    makeMove(move.fromRow, move.fromCol, move.toRow, move.toCol);
+ }
+ boolean checkIfWarpJump = false, checkIfJumpWarp = false;
+ public void makeMove(int fromRow, int fromCol, int toRow, int toCol) 
+ {
+       /*
+        * I NEED TO MAKE IT SO EACH PIECE HAS THEIR OWN makeMove ELEMENT LIST
+        * SO THEY DO NOT OVERLAP
+        */
+	   
+	   System.out.println(board[toRow][toCol]);
+	   
+	   board[toRow][toCol] = board[fromRow][fromCol];
+	   
+	   //Check if space was previously a warp
+	   if(isWarp[fromRow][fromCol] != 0)
+		   board[fromRow][fromCol] = isWarp[fromRow][fromCol];
+	   //It's not, so that means it's empty
+	   else
+		   board[fromRow][fromCol] = EMPTY;
+	   
+	    if(checkIfWarpJump)
+	 	  board[toRow - incr][toCol - incc] = isWarp[fromRow + incr][fromCol + incc];
+	    
+	    if(checkIfJumpWarp)	
+	    	board[fromRow + incr][fromCol + incc] = isWarp[toRow - incr][toRow - incc];
+
+	   
+    if (fromRow - toRow >= 2 || fromRow - toRow <= -2 || fromCol - toCol >= 2 || fromCol - toCol <= -2) 
+    {
+          // The move is a jump.  Remove the jumped piece from the board.
+       int jumpRow = (fromRow + toRow) / 2;  // Row of the jumped piece.
+       int jumpCol = (fromCol + toCol) / 2;  // Column of the jumped piece.
+       
+       if(isWarp[jumpRow][jumpCol] != 0)
+      	 board[jumpRow][jumpCol] = isWarp[jumpRow][jumpCol];
+       else
+      	 board[jumpRow][jumpCol] = EMPTY;
+    }
+    
+
+    
+    if (toRow == 0 && board[toRow][toCol] == WHITE)
+    {
+       board[toRow][toCol] = WHITE_SPLIT;
+       int i;
+       for(i = 1; i < 7 && board[7][i] != EMPTY;i++);
+   
+      	 board[7][i] = WHITE_SPLIT;
+      	 
+    }
+    if (toRow == 7 && board[toRow][toCol] == BLACK)
+    {
+       board[toRow][toCol] = BLACK_SPLIT;
+       int i;
+       for(i = 1; i < 7 && board[7][i] != EMPTY;i++);
+       
+      	 board[0][i] = BLACK_SPLIT;
+    }
+   
+    checkIfWarpJump = false;
+    checkIfJumpWarp = false;
+ }
+ 
+
+
+ @SuppressWarnings({ "unchecked", "rawtypes" })
+public PortalsMoves[] getLegalMoves(int player) {
+        // Return an array containing all the legal PortalsMovess
+        // for the specfied player on the current board.  If the player
+        // has no legal moves, null is returned.  The value of player
+        // should be one of the constants RED or BLACK; if not, null
+        // is returned.  If the returned value is non-null, it consists
+        // entirely of jump moves or entirely of regular moves, since
+        // if the player can jump, only jumps are legal moves.
+
+    if (player != WHITE && player != BLACK)
+       return null;
+
+    int playerKing, enemy;  // The constant representing a King belonging to player.
+    if (player == WHITE)
+    {
+       playerKing = WHITE_SPLIT;
+       enemy = BLACK;
+    }
+    else
+    {
+       playerKing = BLACK_SPLIT;
+       enemy = WHITE;
+    }
+    
+    
+
+    Vector moves = new Vector();  // Moves will be stored in this vector.
+    
+    /*  First, check for any possible jumps.  Look at each square on the board.
+        If that square contains one of the player's pieces, look at a possible
+        jump in each of the four directions from that square.  If there is 
+        a legal jump in that direction, put it in the moves vector.
+    */
+    for (int row = 0; row < 8; row++)
+        for (int col = 0; col < 8; col++)
+           if (board[row][col] == player || board[row][col] == playerKing)
+           {  
+        	   System.out.println("Piece Coordinates: " + row + "\t" + col);
+        	   System.out.println("justWarp");
+        	   if(justWarp(row, col))
+        	   {
+        		   System.out.println("True");
+        		   moves.addElement(new PortalsMoves(row,col,getAltWarpRow(row),getAltWarpCol(col)));
+        	   }
+        	   
+          	 for(int i = -1; i <= 1; i++)
+          		   for(int j = -1; j<= 1; j++)
+          		   {
+                    	
+
+          	 //getAlternateWarpCoordinates(enemy ,row+i, col+j, i, j);
+          		warpJumpRow = getAltWarpRow(row);//+2*i;
+          		warpJumpCol = getAltWarpCol(col);//+2*j;
+          		//System.out.println("canWarpJump");
+          		if(IsInBounds(warpJumpRow, warpJumpCol))        			
+               if( canWarpJump(player, enemy, row+i, col+j, warpJumpRow, warpJumpCol))
+               {
+            	  // System.out.println("True");
+            	   incr = i;
+            	   incc = j;
+            	   moves.addElement(new PortalsMoves(row,col,getAltWarpRow(row),getAltWarpCol(col)));
+            	   //To get this to work, you have to mess with the mousePressed function
+            	   if(isWarp[getAltWarpRow(row)][getAltWarpCol(col)] != 0)
+            		   moves.addElement(new PortalsMoves(row,col,row,col));
+               }
+          		
+          		if(canJumpWarp(player, enemy, row+i, col+j, warpJumpRow, warpJumpCol))
+          		{
+          			System.out.println("True");
+          			incr = i;
+          			incc = j;
+          			
+             	   moves.addElement(new PortalsMoves(row,col,getAltWarpRow(row),getAltWarpCol(col)));
+             	  //To get this to work, you have to mess with the mousePressed function
+            	   if(isWarp[getAltWarpRow(row+i)][getAltWarpCol(col+j)] != 0)
+            		   moves.addElement(new PortalsMoves(row,col,row,col));
+          		}
+          		
+          		//System.out.println("canWarp");
+               if(canWarp(row+i, col+j))
+               {
+            	   //System.out.println("True");
+            	   moves.addElement(new PortalsMoves(row,col,getAltWarpRow(row+i),getAltWarpCol(col+j)));
+               }
+               //System.out.println("canJump");
+               if (canJump(player, row, col, row+i, col+j, row+2*i, col+2*j))
+               {
+            	   //System.out.println("True");
+                   moves.addElement(new PortalsMoves(row, col, row+2*i, col+2*j));
+                   
+                   if(isWarp[row+2*i][col+2*j] != 0)
+                   {
+            		   moves.addElement(new PortalsMoves(row,col,getAltWarpRow(row+2*i),getAltWarpCol(col+2*j)));
+            		   //CanWarpAfterJump = true;
+                   }
+               }
+               //System.out.println("canMove");
+               if (canMove(player,row,col,row+i,col+j))
+               {
+            	   //System.out.println("True");
+                   moves.addElement(new PortalsMoves(row,col,row+i,col+j));
+               }
+          		   }
+
+           }
+    
+    if (moves.size() == 0)
+       return null;
+    else 
+    {
+       PortalsMoves[] moveArray = new PortalsMoves[moves.size()];
+       for (int i = 0; i < moves.size(); i++)
+          moveArray[i] = (PortalsMoves)moves.elementAt(i);
+       return moveArray;
+    }
+
+ }  // end getLegalMoves
+
+ public boolean IsAdjacentWarp(int r, int c)
+ {
+	 if(!IsInBounds(r,c) || board[r][c] < 5)
+		 return false;
+	 
+	 return true;
+ }
+ 
+ public boolean IsOnWarp(int r, int c)
+ {
+	 if(board[r][c] < 5 && isWarp[r][c] > 4)
+		 return true;
+	 
+	 return false;
+ }
+ 
+ public boolean WarpOccupied(int r, int c)
+ {
+	 if(board[getAltWarpRow(r)][getAltWarpCol(c)] < 5
+	 && board[getAltWarpRow(r)][getAltWarpCol(c)] != 0)
+		 return true;
+	 
+	 return false;
+ }
+ 
+ public int getAltWarpRow(int r)
+ {
+ 	return 7 - r;
+ }
+ 
+ public int getAltWarpCol(int c)
+ {
+	 return 7 - c;
+ }
+ 
+ public boolean IsSpaceEmpty(int space)
+ {
+	 if(space == 0 || space > 4)
+		 return true;
+	 
+	 return false;
+ }
+ 
+ public boolean IsInBounds(int r, int c)
+ {
+	 if (r < 0 || r > 7 || c < 0 || c > 7)
+         return false;
+	 
+	 return true;
+ }
+ 
+ //SelectPieceToJump
+ 
+ 
+ public boolean justWarp(int r, int c)
+ {
+	 if(WarpOccupied(r,c) || !IsOnWarp(r,c))
+		 return false;
+	 
+	 return true;
+ }
+ 
+ public boolean canWarp(int r, int c)
+ {
+	  
+	   if(!IsInBounds(r,c) || !IsAdjacentWarp(r,c) || WarpOccupied(r,c))
+		   return false;
+	   
+	   return true;
+	  
+ }
+ 
+ public boolean canWarpJump(int player, int enemy, int r, int c, int r2, int c2)
+ {
+	 	if(!IsInBounds(r,c))
+	 		return false;
+
+	   if(IsAdjacentWarp(r,c) && WarpOccupied(r,c) && IsSpaceEmpty(board[r2][c2]))		   
+	   {
+		
+		   if(board[getAltWarpRow(r)][getAltWarpCol(c)] == enemy)
+		   {
+			   System.out.println("canWarpJump!");
+			   checkIfWarpJump = true;
+			   return true;
+		   }
+		   //System.out.println("not found");
+	   }
+	   return false;
+ }
+ 
+ public boolean canJumpWarp(int player, int enemy, int r, int c, int r2, int c2)
+ {
+	 if(!IsInBounds(r,c))
+		 return false;
+	 
+	 if( WarpOccupied(r2,c2) && IsSpaceEmpty(board[r2][c2]))
+	 {
+		 if(board[r][c] == enemy)
+		 {
+			 System.out.println("CanJumpWarp!");
+			 checkIfJumpWarp = true;
+			 return true;
+		 }
+	 }
+	 return false;
+ }
+ 
+ private boolean canJump(int player, int r1, int c1, int r2, int c2, int r3, int c3) {
+         // This is called by the two previous methods to check whether the
+         // player can legally jump from (r1,c1) to (r3,c3).  It is assumed
+         // that the player has a piece at (r1,c1), that (r3,c3) is a position
+         // that is 2 rows and 2 columns distant from (r1,c1) and that 
+         // (r2,c2) is the square between (r1,c1) and (r3,c3).
+         
+    if (r3 < 0 || r3 >= 8 || c3 < 0 || c3 >= 8)
+       return false;  // (r3,c3) is off the board.
+       
+    /*
+    for(int i=0; i<6;i++)
+  	  if(board[r2][c2] == WARP[i])
+  	  {
+  		  return true;
+  	  }
+    */
+    if (board[r3][c3] == BLACK || board[r3][c3] == WHITE)
+       return false;  // (r3,c3) already contains a piece.
+       
+    if (player == WHITE) {
+       if (board[r2][c2] != BLACK && board[r2][c2] != BLACK_SPLIT)
+          return false;  // There is no black piece to jump.
+       return true;  // The jump is legal.
+    }
+    else {
+     
+       if (board[r2][c2] != WHITE && board[r2][c2] != WHITE_SPLIT)
+          return false;  // There is no red piece to jump.
+       return true;  // The jump is legal.
+    }
+
+ }  // end canJump()
+ 
+ private boolean canMove(int player, int r1, int c1, int r2, int c2) {
+       // This is called by the getLegalMoves() method to determine whether
+       // the player can legally move from (r1,c1) to (r2,c2).  It is
+       // assumed that (r1,r2) contains one of the player's pieces and
+       // that (r2,c2) is a neighboring square.
+       
+    if (r2 < 0 || r2 >= 8 || c2 < 0 || c2 >= 8)
+       return false;  // (r2,c2) is off the board.
+    
+    for(int i=0; i<6;i++)
+  	  if(board[r2][c2] == WARP[i])
+  	  {
+  		  return true;
+  	  }
+    
+    if (board[r2][c2] != EMPTY )
+       return false;  // (r2,c2) already contains a piece.
+    
+    return true;
+ }  // end canMove()
+ 
+ 
+}
